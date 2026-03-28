@@ -11,6 +11,7 @@ export const createProduct = async (req, res) => {
 
     try {
         const findProduct = await Product.findOne({ "sku": sku });
+
         if (findProduct) {
             return res.status(400).json({
                 message: "Product already Exists with same sku."

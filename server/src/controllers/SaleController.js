@@ -42,3 +42,42 @@ export const createSale = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" })
     }
 }
+export const getSales = async (req, res) => {
+
+    try {
+        const sales = await Sale.find();
+
+        if (!sales) {
+            return res.status(404).json({
+                message: "No sales found"
+            });
+        }
+
+        res.status(200).json({ success: true, sales: sales })
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+
+}
+
+export const getSale = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const sale = await Sale.findById(id);
+
+        if (!sale) {
+            return res.status(404).json({
+                message: "No sale found"
+            });
+        }
+
+        res.status(200).json({ success: true, sale: sale })
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+}

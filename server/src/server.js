@@ -7,6 +7,8 @@ import ProductRoutes from "./routes/ProductRoutes.js"
 import SaleRoutes from "./routes/SaleRoutes.js"
 import connectDb from "./config/db.js"
 import rateLimiter from "./middlewares/RateLimiter.js"
+import AuthRoutes from "./routes/AuthRoutes.js"
+import { protectedRoute } from "./middlewares/AuthMiddleware.js"
 
 dotenv.config()
 const app = express();
@@ -19,8 +21,9 @@ app.use(rateLimiter);
 
 const PORT = process.env.PORT || 5000;
 
-app.use("/api/products", ProductRoutes)
-app.use("/api/sales/", SaleRoutes)
+app.use("/api/auth", AuthRoutes)
+app.use("/api/products", protectedRoute, ProductRoutes)
+app.use("/api/sales/", protectedRoute, SaleRoutes)
 
 connectDb().then(() => {
     app.listen(PORT, () => {
