@@ -1,6 +1,7 @@
 import rateLimit from "../config/upstach.js";
 
 const rateLimiter = async (req, res, next) => {
+    // const username = req.user.username;
     try {
         const { success } = await rateLimit.limit("my-limit")
         if (!success) {

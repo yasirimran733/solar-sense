@@ -22,10 +22,18 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-    "size": String,
-    "category": String,
-    "power": String
-})
+    "size": {
+        type: String
+    },
+    "category": {
+        type: String
+    },
+    "power": {
+        type: String
+    },
+},
+    { timestamps: true }
+)
 
 const Product = mongoose.model("Product", productSchema)
 

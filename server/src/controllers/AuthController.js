@@ -3,22 +3,22 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
 export const signup = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!username || !email || !password) {
+    if (!username || !password) {
         return res.status(400).json({ success: false, message: "All fields are required!" })
     }
     try {
 
-        const user = await User.findOne({ email: email })
+        const user = await User.findOne({ username: username })
 
         if (user) {
-            return res.status(400).json({ success: false, message: "User already exists with this email. try another." })
+            return res.status(400).json({ success: false, message: "User already exists with this username. try another." })
         }
 
         const hashPassword = await bcrypt.hash(password, 10);
 
-        const newUser = new User({ username, email, password: hashPassword })
+        const newUser = new User({ username, password: hashPassword })
         const saveUser = await newUser.save();
 
 

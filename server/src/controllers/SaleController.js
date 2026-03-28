@@ -1,12 +1,30 @@
 import Sale from '../models/Sales.js'
 import Product from '../models/Product.js'
+import Counter from '../models/Counter.js'
+
+const getNextInvoiceNumber = async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const counter = await Counter.findOneAndUpdate(
+        { date: today },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+    )
+
+    const paddedSequence = String(counter.seq).padStart(3, "0")
+
+    return `INV-${today}-${paddedSequence}`
+}
+
+
 
 export const createSale = async (req, res) => {
     const { items } = req.body;
+    let profit = 0;
     const salesItems = [];
+    let totalAmount = 0;
 
     try {
-        let totalAmount = 0;
+        const invoiceNumber = await getNextInvoiceNumber();
         for (const item of items) {
 
             const product = await Product.findOne({ sku: item.productSKU })
@@ -18,20 +36,23 @@ export const createSale = async (req, res) => {
             }
 
             product.quantity -= item.quantity;
+            profit += (item.price - product.purchase_price) * item.quantity;
             await product.save();
+            
             totalAmount += (product.sale_price * item.quantity);
 
             salesItems.push({
                 productSKU: item.productSKU,
                 price: product.sale_price,
                 quantity: item.quantity
-
             })
         };
 
         const sale = new Sale({
             totalAmount: totalAmount,
             items: salesItems,
+            profit: profit,
+            invoiceNumber: invoiceNumber,
         })
 
         await sale.save();

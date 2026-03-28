@@ -27,6 +27,10 @@ export const createProduct = async (req, res) => {
 }
 
 export const getAllProducts = async (req, res) => {
+    const username = req.user.username;
+
+    console.log(username)
+
     try {
         const products = await Product.find();
         if (products.length === 0) {
@@ -85,4 +89,30 @@ export const deleteProduct = async (req, res) => {
         console.log(err)
         res.status(500).json({ error: "Internal Server Error" })
     }
+}
+
+
+export const searchProduct = async (req, res) => {
+    const { q } = req.query;
+
+    console.log("Query :", q)
+    if (!q) {
+        return res.status(200).json([]);
+    }
+
+    try {
+        const products = await Product.findOne({
+            $or: [
+                { name: { $regex: q, $options: "i" } },
+                { sku: { $regex: q, $options: "i" } }
+            ]
+        }).limit(5);
+
+        res.status(200).json({ success: true, products: products, message: "Product Returned Succesfully" })
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ error: "Internal Server Error" })
+    }
+
 }
