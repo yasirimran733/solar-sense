@@ -47,7 +47,7 @@ export const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password)
 
         if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Password is not matched" })
+            return res.status(400).json({ success: false, message: "Password does not matched" })
 
         }
         const secretKey = process.env.JWT_TOKEN;
