@@ -1,4 +1,6 @@
 import express from "express"
+import path from "path"
+import { fileURLToPath } from "url"
 import dotenv from "dotenv"
 import cors from "cors"
 import helmet from "helmet"
@@ -10,6 +12,10 @@ import rateLimiter from "./middlewares/RateLimiter.js"
 import AuthRoutes from "./routes/AuthRoutes.js"
 import DashBoardRoutes from "./routes/DashBoardRoutes.js"
 import { protectedRoute } from "./middlewares/AuthMiddleware.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const clientDist = path.join(__dirname, "../../client/dist")
 
 dotenv.config()
 const app = express();
@@ -26,6 +32,19 @@ app.use("/api/auth", AuthRoutes)
 app.use("/api/products", protectedRoute, ProductRoutes)
 app.use("/api/sales/", protectedRoute, SaleRoutes)
 app.use("/api/dashboard/", protectedRoute, DashBoardRoutes)
+
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(clientDist, { index: false }))
+
+    app.get("*", (req, res, next) => {
+        if (req.originalUrl.startsWith("/api")) {
+            return res.status(404).json({ success: false, message: "Not found" })
+        }
+        res.sendFile(path.join(clientDist, "index.html"), (err) => {
+            if (err) next(err)
+        })
+    })
+}
 
 connectDb().then(() => {
     app.listen(PORT, () => {

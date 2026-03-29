@@ -1,0 +1,19 @@
+# Render Blueprint — single Web service (API + static SPA, same origin)
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: solar-sense
+    runtime: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_TOKEN
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
