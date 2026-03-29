@@ -36,7 +36,11 @@ app.use("/api/dashboard/", protectedRoute, DashBoardRoutes)
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(clientDist, { index: false }))
 
-    app.get("*", (req, res, next) => {
+    // Express 5 / path-to-regexp v8: bare "*" is invalid; use middleware for SPA fallback
+    app.use((req, res, next) => {
+        if (req.method !== "GET" && req.method !== "HEAD") {
+            return next()
+        }
         if (req.originalUrl.startsWith("/api")) {
             return res.status(404).json({ success: false, message: "Not found" })
         }
