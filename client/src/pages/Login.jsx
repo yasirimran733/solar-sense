@@ -1,17 +1,23 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaSolarPanel, FaSpinner } from 'react-icons/fa';
-
+import { loginUser } from '../api/authApi';
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
+  const token = localStorage.getItem("token")
+  
+  useEffect(()=>{
+    if(token){
+      navigate("/dashboard")
+    }
+  },[])
   async function handleSubmit(e) {
     e.preventDefault();
     
@@ -28,20 +34,20 @@ function Login() {
     setIsLoading(true);
     
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const data = await loginUser({
         username, 
         password
       });
       
-      const token = response.data.token;
-      if (response.data.success) {
+      const token = data.token;
+      if (data.success) {
         localStorage.setItem("token", token);
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
           navigate("/dashboard");
         }, 1500);
       } else {
-        toast.error(response.data.message || "Login failed. Please try again.");
+        toast.error(data.message || "Login failed. Please try again.");
       }
     } catch(error) {   
       console.log(error);

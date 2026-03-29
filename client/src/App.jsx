@@ -7,19 +7,20 @@ import Cart from './pages/Cart'
 import Products from './pages/Products'
 import LowStock from './pages/LowStock'
 import Sales from './pages/Sales'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
     <>
     <div>
       <Routes>
-        <Route path='/' element={<Home/>}></Route>
+        <Route path='/' element={ <ProtectedRoute> <Home/> </ProtectedRoute> }></Route>
         <Route path='/login' element={<Login/>}></Route>
-        <Route path='/dashboard' element={<Dashboard/>}></Route>
-        <Route path='/cart' element={<Cart/>}></Route>
-        <Route path='/products' element={<Products/>}></Route>
-        <Route path='/low-stock' element={<LowStock/>}></Route>
-        <Route path='/sales' element={<Sales/>}></Route>
+        <Route path='/dashboard' element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
+        <Route path='/cart' element={<ProtectedRoute><Cart/></ProtectedRoute>}></Route>
+        <Route path='/products' element={<ProtectedRoute><Products/></ProtectedRoute>}></Route>
+        <Route path='/low-stock' element={<ProtectedRoute><LowStock/></ProtectedRoute>}></Route>
+        <Route path='/sales' element={<ProtectedRoute><Sales/></ProtectedRoute>}></Route>
       </Routes>
     </div>
     </>

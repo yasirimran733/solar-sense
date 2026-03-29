@@ -2,9 +2,9 @@ import Product from "../models/Product.js"
 import Sale from "../models/Sales.js"
 
 export const dashBoardSummary = async (req, res) => {
-    const { range } = req.query;
-    const startDate = req.query.start ? new Date(req.query.start) : new Date(0);
-    const endDate = req.query.end ? new Date(req.query.end) : new Date();
+    const { range } = req.query || "today";
+    let startDate = req.query.start ? new Date(req.query.start) : new Date(0);
+    let endDate = req.query.end ? new Date(req.query.end) : new Date();
 
     if (range == "today") {
         startDate = new Date();
@@ -39,11 +39,13 @@ export const dashBoardSummary = async (req, res) => {
         ])
 
         res.status(200).json({
+            success: true,
             totalProducts,
             totalSales: summary[0]?.totalSales || 0,
             totalProfit: summary[0]?.totalProfit || 0,
             totalInvoices: summary[0]?.totalInvoices || 0
         })
+
     } catch (err) {
         console.log(err)
         res.status(500).json({ error: "Internal Server Error" })
@@ -53,7 +55,7 @@ export const dashBoardSummary = async (req, res) => {
 export const lowStockProducts = async (req, res) => {
     try {
 
-        const products = await Product.find({ quantity: { $lte: 10 } })
+        const products = await Product.find({ quantity: { $lte: 5 } })
 
         if (products.length === 0) {
             return res.status(200).json({ success: true, message: "All products are in stock" })

@@ -34,7 +34,7 @@ export const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find();
         if (products.length === 0) {
-            return res.status(404).json({ message: "No products found." })
+            return res.status(404).json({ success: false, message: "No products found." })
         }
         res.status(200).json({ success: true, products: products })
     } catch (err) {
@@ -49,7 +49,7 @@ export const getProduct = async (req, res) => {
         const product = await Product.findOne({ "sku": sku });
         console.log(typeof (product))
         if (!product) {
-            return res.status(404).json({ message: "No product found." })
+            return res.status(404).json({ success: false, message: "No product found." })
         }
         res.status(200).json({ success: true, product: product })
     } catch (err) {
