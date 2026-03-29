@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/auth", AuthRoutes)
 app.use("/api/products", protectedRoute, ProductRoutes)
 app.use("/api/sales/", protectedRoute, SaleRoutes)
-app.use("/api/dashboard/", DashBoardRoutes)
+app.use("/api/dashboard/", protectedRoute, DashBoardRoutes)
 
 connectDb().then(() => {
     app.listen(PORT, () => {

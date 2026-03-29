@@ -1,27 +1,31 @@
-import React from 'react'
-import { useState,useEffect } from 'react'
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaSolarPanel, FaSpinner } from 'react-icons/fa';
-import { loginUser } from '../api/authApi';
+import React from "react";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaUser, FaLock, FaSolarPanel, FaSpinner } from "react-icons/fa";
+import { loginUser } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessage } from "../utils/apiError";
+
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token")
-  
-  useEffect(()=>{
-    if(token){
-      navigate("/dashboard")
+  const location = useLocation();
+  const { isAuthenticated, login } = useAuth();
+
+  const from = location.state?.from || "/dashboard";
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
     }
-  },[])
+  }, [isAuthenticated, from, navigate]);
+
   async function handleSubmit(e) {
     e.preventDefault();
-    
-    // Validation
+
     if (!username.trim()) {
       toast.error("Please enter your username");
       return;
@@ -32,121 +36,91 @@ function Login() {
     }
 
     setIsLoading(true);
-    
+
     try {
       const data = await loginUser({
-        username, 
-        password
+        username,
+        password,
       });
-      
-      const token = data.token;
-      if (data.success) {
-        localStorage.setItem("token", token);
+
+      if (data.success && data.token) {
+        login(data.token, data.user);
         toast.success("Login successful! Redirecting...");
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
+        navigate(from, { replace: true });
       } else {
         toast.error(data.message || "Login failed. Please try again.");
       }
-    } catch(error) {   
-      console.log(error);
-      if (error.response) {
-        toast.error(error.response.data.message || "Invalid credentials. Please try again.");
-      } else if (error.request) {
-        toast.error("Network error. Please check your connection.");
-      } else {
-        toast.error("An error occurred. Please try again later.");
-      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Invalid credentials. Please try again."));
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4'>
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      
-      <div className='w-full max-w-md'>
-        {/* Logo/Brand Section */}
-        <div className='text-center mb-8 animate-fade-in'>
-          <div className='inline-flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 p-3 rounded-2xl shadow-lg mb-4'>
-            <FaSolarPanel className='text-white text-3xl' />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 animate-fade-in text-center">
+          <div className="mb-4 inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-3 shadow-lg">
+            <FaSolarPanel className="text-3xl text-white" />
           </div>
-          <h1 className='text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent'>
+          <h1 className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
             Solar Sense Technologies
           </h1>
-          <p className='text-gray-600 mt-2'>Inventory Management System</p>
+          <p className="mt-2 text-gray-600">Inventory Management System</p>
         </div>
 
-        {/* Login Form Card */}
-        <div className='bg-white rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all duration-300 hover:shadow-3xl'>
-          <div className='text-center mb-6'>
-            <h2 className='text-2xl font-semibold text-gray-800'>Welcome Back</h2>
-            <p className='text-gray-500 text-sm mt-1'>Please login to your account</p>
+        <div className="transform rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300 hover:shadow-3xl md:p-8">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-semibold text-gray-800">Welcome Back</h2>
+            <p className="mt-1 text-sm text-gray-500">Please login to your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className='space-y-5'>
-            {/* Username Field */}
-            <div className='space-y-2'>
-              <label className='block text-sm font-medium text-gray-700'>
-                Username
-              </label>
-              <div className='relative'>
-                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <FaUser className='text-gray-400 text-sm' />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Username</label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <FaUser className="text-sm text-gray-400" />
                 </div>
                 <input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   type="text"
                   placeholder="Enter your username"
-                  className='w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200'
+                  className="w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   disabled={isLoading}
+                  autoComplete="username"
                 />
               </div>
             </div>
 
-            {/* Password Field */}
-            <div className='space-y-2'>
-              <label className='block text-sm font-medium text-gray-700'>
-                Password
-              </label>
-              <div className='relative'>
-                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <FaLock className='text-gray-400 text-sm' />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <FaLock className="text-sm text-gray-400" />
                 </div>
                 <input
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   type="password"
                   placeholder="Enter your password"
-                  className='w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200'
+                  className="w-full rounded-lg border border-gray-300 py-2.5 pr-3 pl-10 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
               </div>
             </div>
 
-            {/* Login Button */}
             <button
-              type='submit'
+              type="submit"
               disabled={isLoading}
-              className='w-full bg-gradient-to-r cursor-pointer from-amber-500 to-orange-500 text-white font-semibold py-2.5 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center space-x-2 shadow-md'
+              className="flex w-full transform cursor-pointer items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {isLoading ? (
                 <>
-                  <FaSpinner className='animate-spin' />
+                  <FaSpinner className="animate-spin" />
                   <span>Logging in...</span>
                 </>
               ) : (
@@ -154,19 +128,14 @@ function Login() {
               )}
             </button>
           </form>
-
-          {/* Footer */}
         </div>
 
-         <div className='mt-10 pt-4 border-t border-gray-200 text-center'>
-            <p className='text-xs text-gray-500'>
-              © 2026 Solar Sense Technologies. All rights reserved.
-            </p>
+        <div className="mt-10 border-t border-gray-200 pt-4 text-center">
+          <p className="text-xs text-gray-500">© 2026 Solar Sense Technologies. All rights reserved.</p>
         </div>
       </div>
 
-      {/* Custom CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from {
             opacity: 0;
@@ -182,7 +151,7 @@ function Login() {
         }
       `}</style>
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;

@@ -1,1 +1,34 @@
-@import 'tailwindcss'
+@import 'tailwindcss';
+
+/* Invoice & global print (A4) */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .invoice-no-print,
+  .Toastify {
+    display: none !important;
+  }
+
+  .invoice-print-root {
+    background: white !important;
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .invoice-sheet {
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+}

@@ -33,9 +33,6 @@ export const getAllProducts = async (req, res) => {
 
     try {
         const products = await Product.find();
-        if (products.length === 0) {
-            return res.status(404).json({ success: false, message: "No products found." })
-        }
         res.status(200).json({ success: true, products: products })
     } catch (err) {
         console.log(err)
@@ -66,7 +63,11 @@ export const updateProduct = async (req, res) => {
     }
 
     try {
-        const product = await Product.findOneAndUpdate({ sku: sku }, req.body, { new: true, runValidators: true });
+        const product = await Product.findOneAndUpdate(
+            { sku: sku },
+            req.body,
+            { returnDocument: "after", runValidators: true }
+        );
         if (!product) {
             return res.status(404).json({ message: "No product found." })
         }
@@ -95,20 +96,19 @@ export const deleteProduct = async (req, res) => {
 export const searchProduct = async (req, res) => {
     const { q } = req.query;
 
-    console.log("Query :", q)
-    if (!q) {
-        return res.status(200).json([]);
+    if (!q || !String(q).trim()) {
+        return res.status(200).json({ success: true, products: [], message: "No query" })
     }
 
     try {
-        const products = await Product.findOne({
+        const products = await Product.find({
             $or: [
                 { name: { $regex: q, $options: "i" } },
                 { sku: { $regex: q, $options: "i" } }
             ]
-        }).limit(5);
+        }).limit(20);
 
-        res.status(200).json({ success: true, products: products, message: "Product Returned Succesfully" })
+        res.status(200).json({ success: true, products, message: "Product Returned Succesfully" })
 
     } catch (err) {
         console.log(err)

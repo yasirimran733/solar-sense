@@ -7,7 +7,7 @@ const getNextInvoiceNumber = async () => {
     const counter = await Counter.findOneAndUpdate(
         { date: today },
         { $inc: { seq: 1 } },
-        { new: true, upsert: true }
+        { returnDocument: "after", upsert: true }
     )
 
     const paddedSequence = String(counter.seq).padStart(3, "0")
@@ -23,30 +23,57 @@ export const createSale = async (req, res) => {
     const salesItems = [];
     let totalAmount = 0;
 
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "Sale must include at least one line item." });
+    }
+
     try {
         const invoiceNumber = await getNextInvoiceNumber();
         for (const item of items) {
 
             const product = await Product.findOne({ sku: item.productSKU })
 
-            if (product.quantity < item.quantity) {
+            if (!product) {
+                return res.status(400).json({
+                    message: `Product not found: ${item.productSKU}`,
+                });
+            }
+
+            const qty = Math.max(0, Number(item.quantity) || 0);
+            if (qty < 1) {
+                return res.status(400).json({ message: "Each line item needs quantity >= 1." });
+            }
+
+            if (product.quantity < qty) {
                 return res.status(400).json({
                     message: "Product has less Quantity"
                 });
             }
 
-            product.quantity -= item.quantity;
-            profit += (item.price - product.purchase_price) * item.quantity;
+            const salePrice = Number(product.sale_price);
+            const purchasePrice = Number(product.purchase_price);
+            const lineSale = (Number.isFinite(salePrice) ? salePrice : 0) * qty;
+            const lineProfit =
+                ((Number.isFinite(salePrice) ? salePrice : 0) -
+                    (Number.isFinite(purchasePrice) ? purchasePrice : 0)) *
+                qty;
+
+            product.quantity -= qty;
+            profit += lineProfit;
             await product.save();
-            
-            totalAmount += (product.sale_price * item.quantity);
+
+            totalAmount += lineSale;
 
             salesItems.push({
                 productSKU: item.productSKU,
-                price: product.sale_price,
-                quantity: item.quantity
+                price: Number.isFinite(salePrice) ? salePrice : 0,
+                quantity: qty,
             })
         };
+
+        if (!Number.isFinite(profit) || !Number.isFinite(totalAmount)) {
+            return res.status(500).json({ error: "Invalid sale totals computed." });
+        }
 
         const sale = new Sale({
             totalAmount: totalAmount,

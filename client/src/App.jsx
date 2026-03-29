@@ -1,30 +1,59 @@
-import React from 'react'
-import {Routes,Route} from 'react-router-dom'
-import Login from './pages/Login'
-import Home from './pages/Home'
-import Dashboard from './pages/Dashboard'
-import Cart from './pages/Cart'
-import Products from './pages/Products'
-import LowStock from './pages/LowStock'
-import Sales from './pages/Sales'
-import ProtectedRoute from './components/ProtectedRoute'
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-function App() {
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Cart from "./pages/Cart";
+import Products from "./pages/Products";
+import LowStock from "./pages/LowStock";
+import Sales from "./pages/Sales";
+import InvoicePage from "./pages/InvoicePage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AppLayout from "./components/layout/AppLayout";
+
+export default function App() {
   return (
     <>
-    <div>
       <Routes>
-        <Route path='/' element={ <ProtectedRoute> <Home/> </ProtectedRoute> }></Route>
-        <Route path='/login' element={<Login/>}></Route>
-        <Route path='/dashboard' element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
-        <Route path='/cart' element={<ProtectedRoute><Cart/></ProtectedRoute>}></Route>
-        <Route path='/products' element={<ProtectedRoute><Products/></ProtectedRoute>}></Route>
-        <Route path='/low-stock' element={<ProtectedRoute><LowStock/></ProtectedRoute>}></Route>
-        <Route path='/sales' element={<ProtectedRoute><Sales/></ProtectedRoute>}></Route>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/invoice/:id"
+          element={
+            <ProtectedRoute>
+              <InvoicePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/low-stock" element={<LowStock />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Route>
       </Routes>
-    </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
-  )
+  );
 }
-
-export default App
